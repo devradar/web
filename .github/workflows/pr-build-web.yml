@@ -1,0 +1,25 @@
+name: docs.devradar.io
+
+on: [push]
+
+jobs:
+  site:
+    name: "publish docs"
+    container: anoff/hugo-asciidoctor:latest
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        lfs: true
+    - run: |
+        hugo --gc --minify -d _site --baseURL //docs.devradar.io
+        touch _site/.nojekyll
+        echo "docs.devradar.io" > _site/CNAME
+      name: build hugo page
+    - name: publish to gh-pages
+      uses: JamesIves/github-pages-deploy-action@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        BRANCH: gh-pages
+        FOLDER: _site
+      if: github.event_name == 'push' && github.ref == 'refs/heads/master'
